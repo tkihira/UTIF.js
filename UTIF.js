@@ -39,17 +39,17 @@ if(this.p>4){throw new W("Unsupported color mode")}var E=this.Y(h,f,n);if(this.p
 //UTIF.JpegDecoder = PDFJS.JpegImage;
 
 
-UTIF.encodeImage = function(rgba, w, h, metadata)
+UTIF.encodeImage = function(rgba, w, h, metadata, bytes = 1)
 {
-	var idf = { "t256":[w], "t257":[h], "t258":[8,8,8,8], "t259":[1], "t262":[2], "t273":[1000], // strips offset
-				"t277":[4], "t278":[h], /* rows per strip */          "t279":[w*h*4], // strip byte counts
-				"t282":[[72,1]], "t283":[[72,1]], "t284":[1], "t286":[[0,1]], "t287":[[0,1]], "t296":[1], "t305": ["Photopea (UTIF.js)"], "t338":[1]
+	var idf = { "t256":[w], "t257":[h], "t258":[8 * bytes,8 * bytes ,8 * bytes], "t259":[1], "t262":[2], "t273":[1000], // strips offset
+				"t277":[3], "t278":[h], /* rows per strip */          "t279":[w * 3 * bytes], // strip byte counts
+				"t282":[[72,1]], "t283":[[72,1]], "t284":[1], "t296":[1], "t305": ["Photopea (UTIF.js)"],
 		};
 	if (metadata) for (var i in metadata) idf[i] = metadata[i];
 	
 	var prfx = new Uint8Array(UTIF.encode([idf]));
 	var img = new Uint8Array(rgba);
-	var data = new Uint8Array(1000+w*h*4);
+	var data = new Uint8Array(1000+w*h*3 * bytes);
 	for(var i=0; i<prfx.length; i++) data[i] = prfx[i];
 	for(var i=0; i<img .length; i++) data[1000+i] = img[i];
 	return data.buffer;
@@ -57,7 +57,7 @@ UTIF.encodeImage = function(rgba, w, h, metadata)
 
 UTIF.encode = function(ifds)
 {
-	var LE = false;
+	var LE = true;
 	var data = new Uint8Array(20000), offset = 4, bin = LE ? UTIF._binLE : UTIF._binBE;
 	data[0]=data[1]=LE?73:77;  bin.writeUshort(data,2,42);
 
